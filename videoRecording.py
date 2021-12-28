@@ -23,7 +23,7 @@ def video_record():
     p = ImageGrab.grab()  # 获得当前屏幕
     a, b = p.size  # 获得当前屏幕的大小
     fourcc = cv2.VideoWriter_fourcc(*'XVID')  # 编码格式
-    video = cv2.VideoWriter('%s.avi' % name, fourcc, 16, (a, b))  # 输出文件命名为test.mp4,帧率为20，可以自己设置
+    video = cv2.VideoWriter('%s.avi' % name, fourcc, 20.0, (a, b), True)  # 输出文件命名为test.mp4,帧率为20，可以自己设置
     ims = []
     while True:
         im = ImageGrab.grab()
