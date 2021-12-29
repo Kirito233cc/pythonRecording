@@ -5,13 +5,21 @@ python 屏幕录制改进版，无opencv黑框显示！
 import time
 
 from PIL import ImageGrab
+from PIL import Image
 import numpy as np
 import cv2
 import datetime
 from pynput import keyboard
 import threading
+from mss import mss
 
 flag = False  # 停止标志位
+
+def capture_screenshot():
+    with mss() as sct:
+        monitor = sct.monitors[1]
+        sct_img = sct.grab(monitor)
+        return Image.frombytes('RGB', sct_img.size, sct_img.bgra, 'raw', 'BGRX')
 
 
 def video_record():
@@ -22,27 +30,26 @@ def video_record():
     name = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')  # 当前的时间
     p = ImageGrab.grab()  # 获得当前屏幕
     a, b = p.size  # 获得当前屏幕的大小
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')  # 编码格式
-    video = cv2.VideoWriter('%s.avi' % name, fourcc, 20.0, (a, b), True)  # 输出文件命名为test.mp4,帧率为20，可以自己设置
+    fourcc = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')  # 编码格式
+    video = cv2.VideoWriter('%s.avi' % name, fourcc, 27, (a, b), True)  # 输出文件命名为test.mp4,帧率为20，可以自己设置
     ims = []
     while True:
-        im = ImageGrab.grab()
-        imm = cv2.cvtColor(np.array(im), cv2.COLOR_RGB2BGR)  # 转为opencv的BGR格式
-        ims.append(imm)
+        # im = ImageGrab.grab()
+        im = capture_screenshot()
+        ims.append(im)
         print(len(ims))
-        if len(ims) > 160:
+        if len(ims) > 270:
             ims.pop(0)
             if flag:
-                for i in ims:
-                    video.write(i)
-                print("录制结束！")
                 break
         else:
             if flag:
-                for i in ims:
-                    video.write(i)
-                print("录制结束！")
                 break
+    print("采集结束，开始渲染")
+    for i in ims:
+        imm = cv2.cvtColor(np.array(i), cv2.COLOR_RGB2BGR)  # 转为opencv的BGR格式
+        video.write(imm)
+    print("录制结束！")
     video.release()
 
 
