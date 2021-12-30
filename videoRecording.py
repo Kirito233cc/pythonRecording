@@ -28,6 +28,14 @@ def capture_screenshot():
 flag = False  # 停止标志位
 
 
+def adj_size(self, size):  # 将图像按照比例缩放
+    scale_percent = size  # 按照比例缩小尺寸
+    width = int(self.shape[1] * scale_percent / 100)
+    height = int(self.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    return cv2.resize(self, dim, interpolation=cv2.INTER_AREA)
+
+
 def video_record():
     """
     屏幕录制！
@@ -35,7 +43,9 @@ def video_record():
     """
     name = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')  # 当前的时间
     p = ImageGrab.grab()  # 获得当前屏幕
-    a, b = p.size  # 获得当前屏幕的大小
+    new_p = Image.fromarray(adj_size(np.array(p), 50))  # 调用adj_size方法按比例调整大小
+    a, b = new_p.size  # 获得当前屏幕的大小
+    print(p.size)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')  # 编码格式
     video = cv2.VideoWriter('%s.avi' % name, fourcc, 30.0, (a, b), True)  # 输出文件命名为‘time.avi’,帧率为30，可以自己设置
     ims = []
@@ -56,13 +66,8 @@ def video_record():
     for i in ims:
         raw_pic = Image.frombytes('RGB', i.size, i.bgra, 'raw', 'BGRX')  # 对截图进行编码
         image = np.array(raw_pic)
-        scale_percent = 10  # percent of original size
-        width = int(image.shape[1] * scale_percent / 100)
-        height = int(image.shape[0] * scale_percent / 100)
-        dim = (width, height)
-        new_pic = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
-        # new_pic = cv2.resize(image, (1920, 1080), interpolation=cv2.INTER_AREA)
-        imm = cv2.cvtColor(np.array(new_pic), cv2.COLOR_RGB2BGR)  # 转为opencv的BGR格式
+        new_pic = adj_size(image, 50)  # 缩放截图比例50%
+        imm = cv2.cvtColor(new_pic, cv2.COLOR_RGB2BGR)  # 转为opencv的BGR格式
         video.write(imm)
     print("录制结束！")
     video.release()
