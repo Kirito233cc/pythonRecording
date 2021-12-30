@@ -5,21 +5,27 @@ python 屏幕录制改进版，无opencv黑框显示！
 import time
 
 from PIL import ImageGrab
-from PIL import Image
 import numpy as np
 import cv2
 import datetime
 from pynput import keyboard
 import threading
 from mss import mss
+from PIL import Image
 
-flag = False  # 停止标志位
 
 def capture_screenshot():
+    # Capture entire screen
     with mss() as sct:
         monitor = sct.monitors[1]
+        # monitor = {"top": 0, "left": 0, "width": 1920, "height": 1080}
         sct_img = sct.grab(monitor)
-        return Image.frombytes('RGB', sct_img.size, sct_img.bgra, 'raw', 'BGRX')
+        # Convert to PIL/Pillow Image
+        # return Image.frombytes('RGB', sct_img.size, sct_img.bgra, 'raw', 'BGRX')
+        return sct_img
+
+
+flag = False  # 停止标志位
 
 
 def video_record():
@@ -30,24 +36,33 @@ def video_record():
     name = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')  # 当前的时间
     p = ImageGrab.grab()  # 获得当前屏幕
     a, b = p.size  # 获得当前屏幕的大小
-    fourcc = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')  # 编码格式
-    video = cv2.VideoWriter('%s.avi' % name, fourcc, 27, (a, b), True)  # 输出文件命名为test.mp4,帧率为20，可以自己设置
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')  # 编码格式
+    video = cv2.VideoWriter('%s.avi' % name, fourcc, 30.0, (a, b), True)  # 输出文件命名为‘time.avi’,帧率为30，可以自己设置
     ims = []
     while True:
         # im = ImageGrab.grab()
         im = capture_screenshot()
         ims.append(im)
         print(len(ims))
-        if len(ims) > 270:
+        if len(ims) > 300:  # 限制录制时长10s
             ims.pop(0)
             if flag:
                 break
         else:
             if flag:
                 break
-    print("采集结束，开始渲染")
+
+    print("正在生成录像")
     for i in ims:
-        imm = cv2.cvtColor(np.array(i), cv2.COLOR_RGB2BGR)  # 转为opencv的BGR格式
+        raw_pic = Image.frombytes('RGB', i.size, i.bgra, 'raw', 'BGRX')  # 对截图进行编码
+        image = np.array(raw_pic)
+        scale_percent = 10  # percent of original size
+        width = int(image.shape[1] * scale_percent / 100)
+        height = int(image.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        new_pic = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+        # new_pic = cv2.resize(image, (1920, 1080), interpolation=cv2.INTER_AREA)
+        imm = cv2.cvtColor(np.array(new_pic), cv2.COLOR_RGB2BGR)  # 转为opencv的BGR格式
         video.write(imm)
     print("录制结束！")
     video.release()
