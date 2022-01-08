@@ -6,10 +6,11 @@ import json
 f1 = open('/Users/xushengchao/Desktop/origin.txt', 'r')
 t1 = f1.read()
 f1.close()
-# ctx.log.info(t1)
 f2 = open('/Users/xushengchao/Desktop/change.txt', 'r')
 t2 = f2.read()
 f2.close()
+
+
 # ctx.log.info(t2)
 
 
@@ -21,6 +22,7 @@ def request(flow: mitmproxy.http.HTTPFlow):
 # 当收到响应时触发
 def response(flow: mitmproxy.http.HTTPFlow):
     url = flow.request.url
+    # 仅对请求url中包含'zhiyitech'的响应做处理
     if 'zhiyitech' in url:
         # 替换response中的内容
         # f = open('/Users/xushengchao/Desktop/response.txt', 'w+')
@@ -31,14 +33,18 @@ def response(flow: mitmproxy.http.HTTPFlow):
         # 获取响应头中的content-type
         content_type = flow.response.headers.get('content-type')
         # 仅对返回格式为json的响应进行处理
-        if(content_type == 'application/json;charset=UTF-8'):
+        if content_type == 'application/json;charset=UTF-8':
             # 获取response的内容
             text = flow.response.text
             # 将response内容转成字典格式
             text = json.loads(text)
             success = text.get('success')
-            print(success)
-            # print(content_type)
+            # 判断response的success状态
+            if str(success) == 'True':
+                print(success)
+            else:
+                errorDesc = text.get('errorDesc')
+                print('请求报错，url为：%s' % url + '\n' + '错误信息为:%s' % errorDesc)
         else:
             pass
     else:
