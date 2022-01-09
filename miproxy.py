@@ -2,6 +2,8 @@ import mitmproxy.http
 from mitmproxy import ctx
 from urllib import parse
 import json
+from pynput.keyboard import Key, Controller
+from time import sleep
 
 f1 = open('/Users/xushengchao/Desktop/origin.txt', 'r')
 t1 = f1.read()
@@ -9,9 +11,6 @@ f1.close()
 f2 = open('/Users/xushengchao/Desktop/change.txt', 'r')
 t2 = f2.read()
 f2.close()
-
-
-# ctx.log.info(t2)
 
 
 # 当收到请求时触发
@@ -43,6 +42,11 @@ def response(flow: mitmproxy.http.HTTPFlow):
             if str(success) == 'True':
                 print(success)
             else:
+                # 触发并释放Esc按键
+                keyboard = Controller()
+                keyboard.press(Key.esc)
+                keyboard.release(Key.esc)
+                # 获取错误信息并输出
                 errorDesc = text.get('errorDesc')
                 print('请求报错，url为：%s' % url + '\n' + '错误信息为:%s' % errorDesc)
         else:

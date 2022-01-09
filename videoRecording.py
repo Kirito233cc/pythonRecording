@@ -1,9 +1,4 @@
-"""
-python 屏幕录制改进版，无opencv黑框显示！
-@zhou 2020/1/29_
-"""
-import time
-
+from time import sleep
 from PIL import ImageGrab
 import numpy as np
 import cv2
@@ -74,14 +69,10 @@ def video_record():
 
 
 def on_press(key):
-    """
-    键盘监听事件！！！
-    :param key:
-    :return:
-    """
     # print(key)
     global flag
     if key == keyboard.Key.esc:
+        sleep(3)
         flag = True
         print("stop monitor！")
         return False  # 返回False，键盘监听结束！
