@@ -72,6 +72,7 @@ def on_press(key):
     # print(key)
     global flag
     if key == keyboard.Key.esc:
+        # 让前端接收到response后再结束录制
         sleep(3)
         flag = True
         print("stop monitor！")
@@ -82,4 +83,5 @@ if __name__ == '__main__':
     th = threading.Thread(target=video_record)
     th.start()
     with keyboard.Listener(on_press=on_press) as listener:
+        th.join()
         listener.join()
