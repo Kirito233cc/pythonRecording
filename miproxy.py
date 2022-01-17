@@ -3,7 +3,8 @@ from mitmproxy import ctx
 from urllib import parse
 import json
 from pynput.keyboard import Key, Controller
-from time import sleep
+import curlify
+import requests
 
 f1 = open('/Users/xushengchao/Desktop/origin.txt', 'r')
 t1 = f1.read()
@@ -49,6 +50,26 @@ def response(flow: mitmproxy.http.HTTPFlow):
                 # 获取错误信息并输出
                 errorDesc = text.get('errorDesc')
                 print('请求报错，url为：%s' % url + '\n' + '错误信息为:%s' % errorDesc)
+                # 获取错误信息并发送到localhost:5000
+                n_method = flow.request.method
+                n_content = flow.request.content.decode("UTF-8")
+                n_host = flow.request.host
+                # 单独处理headers
+                n_headers = {}
+                for k, v in flow.request.headers.items():
+                    n_headers[k.upper()] = v
+
+                print(n_content)
+
+                content = {
+                    "url": url,
+                    "method": n_method,
+                    "content": n_content,
+                    'headers': n_headers,
+                    "host": n_host,
+                    "errorDesc": errorDesc
+                }
+                requests.post('http://127.0.0.1:5000', json.dumps(content))
         else:
             pass
     else:
